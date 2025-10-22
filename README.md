@@ -1,79 +1,172 @@
-# Golang assignment 💻
+# Job Applicants Tracker API
 
-This assignment will form the basis for the job interview. You will show-case your implementation and talk about the choices you made and obstacles if you encountered any.
+A Go microservice for tracking job applicants with gRPC + REST APIs, PostgreSQL database, and comprehensive validation.
 
-## Prequisites ✔️
+Built with production-ready patterns: type-safe queries (sqlc), protocol buffers for service definitions, structured logging, and proper error handling.
 
-1. Git
-2. Golang
-3. Docker (optional)
+## Quick Start
 
-## Assignment 📝
+### Prerequisites
 
-Fork this repository and commit your code to your own repository.
+- **Docker & Docker Compose** (recommended for easiest setup)
+- **Go 1.25+** (if running locally)
 
-1. Create a simple Golang application that will serve a RESTful API with a resource of your choice (pets, books, memes, etc). The endpoints should support Create, Read, Update and Delete operations.
-2. The data should be persisted in a database like SQLite, MySQL, PostgreSQL, etc.
+### Start the Application (Docker)
 
-If you are stuck or want some inspiration see the tips below.
+```bash
+# Start database, run migrations, seed data, and start API
+make docker-up
 
-### Optionals
-
-1. Add tests for you REST API.
-2. Create a dockerfile for your application.
-
-## Tips 🧞
-
-### Application example
-
-_Endpoints:_
-
-```sh
-# Get all pets
-GET /pets
-
-# Get a specific pet
-GET /pets/:id
-
-# Create a pet
-POST /pets
-
-# Update a pet
-PUT /pets/:id
-
-# Delete a pet
-DELETE /pets/:id
+# The API is now running at:
+# - REST API: http://localhost:8080
+# - gRPC API: localhost:9090
+# - API Documentation: http://localhost:8080/docs/
 ```
 
-_Model:_
+That's it! The service is ready to use.
 
-```json
-{
-    "id": 1,
-    "name": "Fluffy",
-    "age": 3,
-    "breed": "cat"
-}
+### Test the API with Swagger UI
+
+1. Open your browser to **http://localhost:8080/docs/**
+2. You'll see the interactive Swagger UI with all available endpoints
+3. Click on any endpoint to expand it
+4. Click "Try it out" to test the endpoint
+5. Fill in the parameters and click "Execute"
+
+**Try these first:**
+- `GET /v1/applicants` - List all applicants
+- `GET /v1/applicants/best` - Get the top-rated applicant
+- `GET /v1/applicants/{id}` - Get a specific applicant by ID
+
+### Example API Calls (curl)
+
+#### Get All Applicants
+```bash
+curl http://localhost:8080/v1/applicants
 ```
 
-### Database
+#### Get Specific Applicant
+```bash
+curl http://localhost:8080/v1/applicants/1
+```
 
-This package can be used to connect to a local SQLite database:
+#### Get Best Applicant
+```bash
+curl http://localhost:8080/v1/applicants/best
+```
 
--   https://github.com/mattn/go-sqlite3
+#### Create New Applicant
+```bash
+curl -X POST http://localhost:8080/v1/applicants \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Developer",
+    "email": "jane@example.com",
+    "position": "Senior Golang Developer",
+    "yearsExperience": 5,
+    "skills": ["Go", "Kubernetes", "PostgreSQL"],
+    "githubStars": 150,
+    "canExitVim": true,
+    "knowsGo": true,
+    "debugsInProduction": false,
+    "interviewScore": 85.0,
+    "culturalFitScore": 87.0,
+    "technicalScore": 88.0,
+    "funFact": "Writes Go tests before implementation",
+    "availability": "2 weeks",
+    "salaryExpectation": "Competitive"
+  }'
+```
 
-If you want an ORM (Object Relational Mapping) library, you can use GORM:
+#### Update Applicant
+```bash
+curl -X PUT http://localhost:8080/v1/applicants/2 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Senior Developer",
+    "email": "jane@example.com",
+    "position": "Lead Golang Developer",
+    "yearsExperience": 6,
+    "skills": ["Go", "Kubernetes", "PostgreSQL", "gRPC"],
+    "githubStars": 200,
+    "canExitVim": true,
+    "knowsGo": true,
+    "debugsInProduction": true,
+    "interviewScore": 90.0,
+    "culturalFitScore": 88.0,
+    "technicalScore": 92.0,
+    "status": "HIRED",
+    "funFact": "Promoted after excellent performance",
+    "availability": "Immediate",
+    "salaryExpectation": "Negotiated"
+  }'
+```
 
--   https://gorm.io/docs/connecting_to_the_database.html#SQLite
+#### Delete Applicant
+```bash
+curl -X DELETE http://localhost:8080/v1/applicants/3
+```
 
-### REST API
+#### Health Check
+```bash
+# Check if service and database are healthy
+curl http://localhost:8080/health
+```
 
-For creating a HTTP server, you can use echo:
+## Running Locally (Without Docker)
 
--   https://github.com/labstack/echo
+If you prefer to run without Docker:
 
-### REST API testing
+```bash
+# 1. Start PostgreSQL
+docker-compose up -d postgres
 
-Documentation for testing echo endpoints:
+# 2. Run migrations
+make migrate-up
 
--   https://echo.labstack.com/guide/testing/
+# 3. Seed sample data
+make seed
+
+# 4. Run the server
+make run
+```
+
+The API will be available at:
+- REST: http://localhost:8080
+- gRPC: localhost:9090
+- Docs: http://localhost:8080/docs/
+
+## Stopping the Service
+
+```bash
+# Stop all Docker services
+make docker-down
+```
+
+## Available Make Commands
+
+```bash
+make help              # Show all commands
+make docker-up         # Start all services with Docker
+make docker-down       # Stop all services
+make test              # Run tests
+make test-coverage     # Run tests with coverage
+make build             # Build binaries
+make run               # Run server locally
+make migrate-up        # Apply database migrations
+make migrate-down      # Rollback migrations
+make seed              # Seed database
+make reset-db          # Reset database (down, up, seed)
+```
+
+## Configuration
+
+Configuration via environment variables (see `.env.example`):
+
+```bash
+DATABASE_URL=postgres://user:pass@localhost:5432/applicants?sslmode=disable
+SERVER_PORT=8080
+GRPC_PORT=9090
+LOG_LEVEL=debug
+CORS_ORIGINS=*
+```
